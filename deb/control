@@ -1,0 +1,9 @@
+Package: texlive-xprintlen
+Version: 35928.1.0
+Section: tex
+Priority: optional
+Architecture: all
+Depends: texlive-latex-base, texlive-latex-recommended
+Maintainer: Alexandr Nikulin
+Description: Print lengths in LaTeX
+ Provides the xprintlen package.

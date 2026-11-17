@@ -1,0 +1,23 @@
+FROM ubuntu:22.04 AS builder
+
+ARG CTAN_ARCHIVE=https://mirrors.ctan.org/systems/texlive/tlnet/archive
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates wget xz-utils
+WORKDIR /work
+COPY deb/control /work/control
+
+RUN mkdir -p /package/DEBIAN /package/usr/share/texlive/texmf-dist /out \
+    && cp control /package/DEBIAN/control \
+    && wget -O xprintlen.tar.xz "${CTAN_ARCHIVE}/xprintlen.tar.xz" \
+    && wget -O xprintlen.doc.tar.xz "${CTAN_ARCHIVE}/xprintlen.doc.tar.xz" \
+    && tar -xJf xprintlen.tar.xz --exclude=tlpkg -C /package/usr/share/texlive/texmf-dist \
+    && tar -xJf xprintlen.doc.tar.xz --exclude=tlpkg -C /package/usr/share/texlive/texmf-dist \
+    && test -f /package/usr/share/texlive/texmf-dist/tex/latex/xprintlen/xprintlen.sty \
+    && dpkg-deb --root-owner-group --build /package /out/texlive-xprintlen.deb
+
+FROM ubuntu:22.04 AS installer
+COPY --from=builder /out/texlive-xprintlen.deb /tmp/texlive-xprintlen.deb
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends /tmp/texlive-xprintlen.deb \
+    && rm /tmp/texlive-xprintlen.deb \
+    && rm -rf /var/lib/apt/lists/*
+CMD ["dpkg-query", "-W", "texlive-xprintlen"]

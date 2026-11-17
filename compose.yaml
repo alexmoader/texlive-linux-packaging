@@ -1,0 +1,9 @@
+services:
+  xprintlen-deb:
+    build:
+      context: .
+      dockerfile: Dockerfile.deb
+  topiclongtable-rpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.rpm

@@ -1,0 +1,16 @@
+FROM rosalab/rosa2021.1 AS builder
+
+ARG CTAN_ARCHIVE=https://mirrors.ctan.org/systems/texlive/tlnet/archive
+RUN dnf install -y rpm-build rpmdevtools ca-certificates wget tar xz texlive-tlpkg texlive-kpathsea lib64magic1 aspell-en
+WORKDIR /root/rpmbuild
+RUN mkdir -p BUILD RPMS SOURCES SPECS SRPMS
+COPY rpm/texlive-topiclongtable.spec SPECS/texlive-topiclongtable.spec
+RUN wget -O SOURCES/topiclongtable.tar.xz "${CTAN_ARCHIVE}/topiclongtable.tar.xz" \
+    && wget -O SOURCES/topiclongtable.doc.tar.xz "${CTAN_ARCHIVE}/topiclongtable.doc.tar.xz" \
+    && rpmbuild -bb SPECS/texlive-topiclongtable.spec
+
+FROM rosalab/rosa2021.1 AS installer
+COPY --from=builder /root/rpmbuild/RPMS/noarch/texlive-topiclongtable-*.rpm /tmp/
+RUN dnf install -y /tmp/texlive-topiclongtable-*.rpm \
+    && rm /tmp/texlive-topiclongtable-*.rpm
+CMD ["rpm", "-q", "texlive-topiclongtable"]
